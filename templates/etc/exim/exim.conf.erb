@@ -65,7 +65,7 @@ MY_IP = ${lookup dnsdb{a=$smtp_active_hostname}}
 smtp_banner = "$smtp_active_hostname ESMTP (Exim $version_number) $tod_full"
 #
 # exim4u: tls Certificates
-tls_certificate = ${if eq{MULTI_IP}{YES}{/etc/pki/tls/exim_tls/exim.MY_IP.cert}{/etc/pki/tls/exim_tls/exim.cert}}
+tls_certificate = ${if eq{MULTI_IP}{YES}{/etc/pki/tls/exim_tls/exim.MY_IP.cert}{/etc/pki/tls/exim_tls/exim.crt}}
 tls_privatekey = ${if eq{MULTI_IP}{YES}{/etc/pki/tls/exim_tls/exim.MY_IP.key}{/etc/pki/tls/exim_tls/exim.key}}
 #
 # exim4u: Define mail headers as follows:

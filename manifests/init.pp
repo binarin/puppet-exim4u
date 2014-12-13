@@ -195,4 +195,62 @@ class exim4u(
     require => Vcsrepo["/usr/local/exim4u/"],
     content => template("exim4u/functions.php"),
   }
+
+  service { "dovecot":
+    ensure => running,
+  }
+  file { "/etc/dovecot/dovecot-sql.conf.ext":
+    ensure => present,
+    content => template("exim4u/etc/dovecot/dovecot-sql.conf.erb"),
+    require => Package["dovecot-mysql"],
+    mode => '0660',
+    notify => Service["dovecot"],
+  }
+  file { "/etc/dovecot/conf.d/10-ssl.conf":
+    ensure => present,
+    content => template("exim4u/etc/dovecot/conf.d/10-ssl.conf.erb"),
+    require => Package["dovecot-mysql"],
+    mode => '0660',
+    notify => Service["dovecot"],
+  }
+  file { "/etc/dovecot/conf.d/10-auth.conf":
+    ensure => present,
+    content => template("exim4u/etc/dovecot/conf.d/10-auth.conf.erb"),
+    require => Package["dovecot-mysql"],
+    mode => '0660',
+    notify => Service["dovecot"],
+  }
+  file { "/etc/dovecot/conf.d/10-mail.conf":
+    ensure => present,
+    content => template("exim4u/etc/dovecot/conf.d/10-mail.conf.erb"),
+    require => Package["dovecot-mysql"],
+    mode => '0660',
+    notify => Service["dovecot"],
+  }
+  file { "/etc/dovecot/conf.d/15-mailboxes.conf":
+    ensure => present,
+    content => template("exim4u/etc/dovecot/conf.d/15-mailboxes.conf.erb"),
+    require => Package["dovecot-mysql"],
+    mode => '0660',
+    notify => Service["dovecot"],
+  }
+
+  file { "/etc/pki":
+    ensure => directory,
+  }
+  file { "/etc/pki/tls":
+    ensure => directory,
+  }
+  file { "/etc/pki/tls/exim_tls":
+    ensure => directory,
+  }
+  ::openssl::certificate::x509 { "exim":
+    ensure => present,
+    base_dir => "/etc/pki/tls/exim_tls",
+    require => File["/etc/pki/tls/exim_tls"],
+    commonname => $primary_hostname,
+    country => 'RU',
+    organization => 'Snake Oil, INC.',
+    days => "3650",
+  }
 }
