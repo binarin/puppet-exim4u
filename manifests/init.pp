@@ -30,6 +30,7 @@ class exim4u(
   $uid,
   $gid,
   $primary_hostname,
+  $admin_email,
 )
 {
   Exec {
@@ -95,6 +96,10 @@ class exim4u(
                 File["/etc/exim"]],
   }
 
+  service { 'exim4':
+    ensure => running,
+  }
+
   $config_templates = ["exim4u_acl_check_dkim.conf.inc",
                        "exim4u_backup_mx_host_names",
                        "exim4u_backup_mx_rl_host_names",
@@ -126,6 +131,7 @@ class exim4u(
   create_resources("file", $config_resources, {
     ensure => present,
     require => File["/etc/exim"],
+    notify => Service['exim4'],
   })
   file { "/etc/exim4/exim4.conf":
     ensure => link,
@@ -252,5 +258,6 @@ class exim4u(
     country => 'RU',
     organization => 'Snake Oil, INC.',
     days => "3650",
+    owner => "Debian-exim",
   }
 }

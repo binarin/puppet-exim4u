@@ -809,7 +809,6 @@ relay_MX_direct_no_header_mod:
   {>{${lookup mysql{select domains.sa_tag from domains where domain = '${quote_mysql:$domain}'}}} \
   {${lookup mysql{select domains.sa_refuse from domains where domain = '${quote_mysql:$domain}'}}} } } }
   route_data = ${lookup mysql{select domains.relay_address from domains where domain = '${quote_mysql:$domain}'}}
-
   no_more
 
 # exim4u: This router routes to MX relay hosts after spam processing if spam tagging is turned on
@@ -840,12 +839,12 @@ relay_MX_direct_header_mod:
 dnslookup:
   driver = dnslookup
   domains = ! +local_domains
-#  transport = remote_smtp
-#  transport = ${if eq{MULTI_IP}{YES}{remote_smtp_multi_IP}{remote_smtp}}
-transport = ${if and {{eq{MULTI_IP}{YES}}{eq{DKIM_ON}{YES}}}{remote_smtp_multi_IP_DK}\
-            {${if and {{eq{MULTI_IP}{YES}}{eq{DKIM_ON}{NO}}}{remote_smtp_multi_IP}\
-            {${if and {{eq{MULTI_IP}{NO}}{eq{DKIM_ON}{YES}}}{remote_smtp_DK}\
-            {remote_smtp}}}}}}
+  #  transport = remote_smtp
+  #  transport = ${if eq{MULTI_IP}{YES}{remote_smtp_multi_IP}{remote_smtp}}
+  transport = ${if and {{eq{MULTI_IP}{YES}}{eq{DKIM_ON}{YES}}}{remote_smtp_multi_IP_DK}\
+              {${if and {{eq{MULTI_IP}{YES}}{eq{DKIM_ON}{NO}}}{remote_smtp_multi_IP}\
+              {${if and {{eq{MULTI_IP}{NO}}{eq{DKIM_ON}{YES}}}{remote_smtp_DK}\
+              {remote_smtp}}}}}}
   ignore_target_hosts = 0.0.0.0 : 127.0.0.0/8
   no_more
 
@@ -865,8 +864,8 @@ ditch_maxmsgsize:
 		and domain = '${quote_mysql:$domain}' \
 		and users.maxmsgsize > 0 \
 		and users.domain_id=domains.domain_id}{${value}K}fail} Kb.
-# local_part_suffix = -*
-# local_part_suffix_optional
+  # local_part_suffix = -*
+  # local_part_suffix_optional
   retry_use_local_part
 
 ditch_spam:
@@ -1133,7 +1132,6 @@ virtual_domain_alias:
 # can specify "user" on the transports that are used. Note that the transports
 # listed below are the same as are used for .forward files; you might want
 # to set up different ones for pipe and file deliveries from aliases.
-
 system_aliases:
   driver = redirect
   allow_fail
@@ -1145,46 +1143,44 @@ system_aliases:
   pipe_transport = address_pipe
 
 
-# This router handles forwarding using traditional .forward files in users'
-# home directories. If you want it also to allow mail filtering when a forward
-# file starts with the string "# Exim filter", uncomment the "allow_filter"
-# option.
+# # This router handles forwarding using traditional .forward files in users'
+# # home directories. If you want it also to allow mail filtering when a forward
+# # file starts with the string "# Exim filter", uncomment the "allow_filter"
+# # option.
 
-# The no_verify setting means that this router is skipped when Exim is
-# verifying addresses. Similarly, no_expn means that this router is skipped if
-# Exim is processing an EXPN command.
+# # The no_verify setting means that this router is skipped when Exim is
+# # verifying addresses. Similarly, no_expn means that this router is skipped if
+# # Exim is processing an EXPN command.
 
-# The check_ancestor option means that if the forward file generates an
-# address that is an ancestor of the current one, the current one gets
-# passed on instead. This covers the case where A is aliased to B and B
-# has a .forward file pointing to A.
+# # The check_ancestor option means that if the forward file generates an
+# # address that is an ancestor of the current one, the current one gets
+# # passed on instead. This covers the case where A is aliased to B and B
+# # has a .forward file pointing to A.
 
-# The three transports specified at the end are those that are used when
-# forwarding generates a direct delivery to a file, or to a pipe, or sets
-# up an auto-reply, respectively.
+# # The three transports specified at the end are those that are used when
+# # forwarding generates a direct delivery to a file, or to a pipe, or sets
+# # up an auto-reply, respectively.
 
-userforward:
-  driver = redirect
-  check_local_user
-  file = $home/.forward
-  no_verify
-  no_expn
-  check_ancestor
-# allow_filter
-  file_transport = address_file
-  pipe_transport = address_pipe_local
-  reply_transport = address_reply
-  condition = ${if exists{$home/.forward} {yes} {no} }
-  group = LOCAL_GROUP
+# userforward:
+#   driver = redirect
+#   check_local_user
+#   file = $home/.forward
+#   no_verify
+#   no_expn
+#   check_ancestor
+# # allow_filter
+#   file_transport = address_file
+#   pipe_transport = address_pipe_local
+#   reply_transport = address_reply
+#   condition = ${if exists{$home/.forward} {yes} {no} }
+#   group = LOCAL_GROUP
 
 
-# This router matches local user mailboxes. If the router fails, the error
-# message is "Unknown user".
-
+# Nobody reads local mail on servers, forward it to global admin address
 localuser:
-  driver = accept
+  driver = redirect
+  data = <%= @admin_email %>
   check_local_user
-  transport = local_delivery
   cannot_route_message = No such person at this address
 
 
